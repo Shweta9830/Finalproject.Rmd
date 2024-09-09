@@ -1,0 +1,208 @@
+---
+title: "R final"
+output: html_document
+date: "2022-12-11"
+---
+
+# Specify the file path
+
+file_path \<- "C:/Users/Shweta/Downloads/Electric Vehicle Population Data (1).csv"
+
+# Read the CSV file into a data frame
+
+Electric_Vehicle_Population_Data \<- read.csv(file_path)
+
+# Display the first few rows of the data frame to confirm it was read correctly
+
+head(Electric_Vehicle_Population_Data)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+is.null(Electric_Vehicle_Population_Data)
+```
+
+## Dataset cleaning for NULL values
+
+```{r}
+Electric_Vehicle_Population_Data %>%
+  select(VIN, County, City, State, ZIP_Code, Model_Year, Make, Model, Electric_Vehicle_Type, CAFV, Range_Km, Base_MSRP, Legislative_District, DOLVehicleID, VehicleLocation, ElectricUtility) %>% na.omit()
+```
+
+```{r}
+table(Electric_Vehicle_Population_Data["City"])
+```
+
+```{r}
+table(Electric_Vehicle_Population_Data["Make"])
+```
+
+## Comparision between city vs Car Company(Make)
+
+```{r}
+NEW_TABLE <- Electric_Vehicle_Population_Data %>% count(City , Make , sort = TRUE)
+NEW_TABLE
+```
+
+## \## Comparision between city vs Year of manufacture
+
+```{r}
+NEW_TABLE <- Electric_Vehicle_Population_Data %>% count(City , Model_Year , sort = TRUE)
+NEW_TABLE
+```
+
+## Comparision between city vs Electric vehicle type( plug-in / hybrid)
+
+```{r}
+NEW_TABLE <- Electric_Vehicle_Population_Data %>% count(City , Electric_Vehicle_Type , sort = TRUE)
+NEW_TABLE
+```
+
+```{r}
+NEW_TABLE <- Electric_Vehicle_Population_Data %>% count(City , Model , sort = TRUE)
+NEW_TABLE
+```
+## TO SHOW THE PREFERENCE OF ELECTRIC VEHICLE TYPE {BEV/PHEV) IN CITIES AND TAKING THE TOP 20 COUNT.
+
+##```{r} 
+##NEW_TABLE %>% 
+##   slice(1:20) %>% 
+##ggplot(., aes( x= city, y = n, color = Electric_vehicle_Type)) + 
+##  geom_bar (stat = 'identity') + 
+##labs (title ="ELECTRIC VEHICLE TYPE PER CITY") + 
+##  theme (axis.text.x=element_text (angle = -90, hjust = 0))
+##```
+
+## TO SHOW THE PREFERENCE OF ELECTRIC VEHICLE TYPE (BEV/PHEV) IN CITIES AND TAKING THE TOP 20 COUNT.
+
+# Create the new table with counts
+
+```{r}
+NEW_TABLE <- Electric_Vehicle_Population_Data %>% 
+  count(City, Electric_Vehicle_Type, sort = TRUE)
+```
+
+# Filter to get the top 20 counts
+
+```{r}
+top_20 <- NEW_TABLE %>% 
+  slice(1:20)
+```
+
+# Plot using ggplot2
+
+```{r}
+ggplot(top_20, aes(x = City, y = n, fill = Electric_Vehicle_Type)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "ELECTRIC VEHICLE TYPE PER CITY") + 
+  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+```
+
+# Create the new table with counts
+
+```{r}
+NEW_TABLE3 <- Electric_Vehicle_Population_Data %>% 
+  count(Make, Model_Year, Electric_Vehicle_Type, sort = TRUE)
+```
+
+# Plot using ggplot2
+```{r}
+ggplot(data = NEW_TABLE3, mapping = aes(x = Make, y = Model_Year, size = n, color = Electric_Vehicle_Type)) + 
+  geom_point() +
+  labs(title = "Electric Vehicles Type Increase per Brand with Respect to Year") +
+  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+```
+# Create the new table with counts or summary statistics
+
+```{r}
+NEW_TABLE2 <- Electric_Vehicle_Population_Data %>% 
+  group_by(State, Electric_Vehicle_Type, Make, Model_Year) %>%
+  summarise(count = n(), .groups = 'drop')
+```
+
+# Plot using ggplot2
+
+```{r}
+ggplot (NEW_TABLE, aes(Electric_Vehicle_Type, State, color = Make, size = Year)) + 
+  geom_boxplot (size = 1) +
+  labs(title = "Statewise increase in Electric vehicles Type with respect to Brand " )
+
+```
+# Create the new table with counts or summary statistics
+
+```{r}
+NEW_TABLE2 <- Electric_Vehicle_Population_Data %>% 
+  group_by(State, Electric_Vehicle_Type, Make, Model_Year) %>%
+  summarise(count = n(), .groups = 'drop')
+```
+
+# Plot using ggplot2
+
+```{r}
+ggplot (NEW_TABLE2, aes(Electric_Vehicle_Type, State, color = Make, size = Year)) + 
+  geom_boxplot(size = 1) +
+  labs(title = "Statewise increase in Electric vehicles Type with respect to Brand ")
+```
+
+# Create NEW_TABLE4 by counting occurrences of Make in each city per year
+
+```{r}
+NEW_TABLE4 <- Electric_Vehicle_Population_Data %>%
+  group_by(city, Model_Year, Make) %>%
+  summarise(n = n(), .groups = 'drop') %>%
+  arrange(desc(n))
+```
+
+```{r}
+NEW_TABLE4 <- NEW_TABLE4 %>%
+  group_by(Model_Year) %>%
+  top_n(40, n)
+```
+
+
+## TO SHOW TOP PREFERED ELECTRIC VEHICLE MANUFACTURING MAKE (BRANDS} IN TOP 40 CITIE PER YEAR. 
+```{r}
+NEW_TABLE4 %>% 
+ slice(1:40) %>%
+ggplot (. , mapping = aes (x = city, y = n, color = Make)) + 
+geom_point + 
+facet_wrap (~ Model_Year) +
+ labs (title = "Top Electric Vehicle Manufacturing Companies From 2013 to 2022" ) + 
+  theme (axis.text.x=element_text (angle = -90, hjust = 0))
+```
+# Create NEW_TABLE4 by counting occurrences of Make in each city per year
+  # Arrange by descending count to get top preferences
+```{r}
+NEW_TABLE4 <- Electric_Vehicle_Population_Data %>%
+  group_by(City, Model_Year, Make) %>%
+  summarise(n = n(), .groups = 'drop') %>%
+  arrange(desc(n))
+```
+
+# Filter to get the top 40 cities per year
+
+```{r}
+NEW_TABLE4 <- NEW_TABLE4 %>%
+  group_by(Model_Year) %>%
+  top_n(40, n)
+```
+
+# Plot using ggplot2
+
+```{r}
+ggplot(NEW_TABLE4, aes(x = City, y = n, color = Make)) + 
+  geom_point() + 
+  facet_wrap(~ Model_Year) +
+  labs(title = "Top Electric Vehicle Manufacturing Companies From 2013 to 2022") + 
+  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+```
+
+
+
